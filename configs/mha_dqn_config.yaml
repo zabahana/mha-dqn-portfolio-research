@@ -1,0 +1,218 @@
+# Multi-Head Attention DQN Configuration for Portfolio Optimization
+# Research Project: NeurIPS 2024 Submission
+
+# Model Architecture
+model:
+  name: "MHA-DQN"
+  version: "1.0"
+  
+  # Attention Configuration
+  attention:
+    num_heads: 8
+    embed_dim: 512
+    num_layers: 6
+    dropout: 0.1
+    attention_dropout: 0.1
+    
+  # Network Architecture
+  network:
+    hidden_dims: [512, 256, 128]
+    activation: "relu"
+    layer_norm: true
+    residual_connections: true
+    
+  # Dueling Architecture
+  dueling:
+    enabled: true
+    value_dim: 256
+    advantage_dim: 256
+    
+  # Sentiment Integration
+  sentiment:
+    fusion_method: "cross_attention"
+    sentiment_dim: 128
+    temporal_window: 30  # days
+    earnings_weight: 2.0  # weight multiplier for earnings days
+
+# Training Configuration
+training:
+  # Basic Parameters
+  batch_size: 64
+  learning_rate: 0.0001
+  num_episodes: 10000
+  max_steps_per_episode: 252  # trading days per year
+  
+  # Optimizer
+  optimizer:
+    type: "adamw"
+    weight_decay: 0.0001
+    betas: [0.9, 0.999]
+    
+  # Learning Rate Scheduler
+  scheduler:
+    type: "cosine_annealing"
+    T_max: 10000
+    eta_min: 0.00001
+    
+  # Experience Replay
+  replay_buffer:
+    capacity: 1000000
+    prioritized: true
+    alpha: 0.6
+    beta: 0.4
+    beta_increment: 0.00001
+    
+  # Target Network
+  target_network:
+    update_frequency: 100
+    soft_update: true
+    tau: 0.005
+    
+  # Exploration
+  exploration:
+    epsilon_start: 1.0
+    epsilon_end: 0.01
+    epsilon_decay: 0.995
+    
+  # Regularization
+  regularization:
+    gradient_clipping: 1.0
+    dropout: 0.1
+    weight_decay: 0.0001
+
+# Environment Configuration
+environment:
+  # Portfolio Parameters
+  portfolio:
+    initial_capital: 1000000  # $1M
+    transaction_cost: 0.001   # 0.1%
+    max_position_size: 0.2    # 20% max per stock
+    rebalance_frequency: 1    # daily
+    
+  # Risk Management
+  risk:
+    max_drawdown_threshold: 0.25  # 25%
+    volatility_target: 0.15       # 15% annual
+    var_confidence: 0.05          # 5% VaR
+    
+  # Reward Function
+  reward:
+    return_weight: 1.0
+    risk_penalty: 0.5
+    sentiment_bonus: 0.3
+    transaction_penalty: 0.1
+    
+  # State Space
+  state:
+    lookback_window: 60  # days
+    technical_indicators: true
+    fundamental_features: true
+    sentiment_features: true
+    macro_features: true
+
+# Data Configuration
+data:
+  # Stock Universe
+  stocks:
+    large_cap: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "UNH", "JNJ"]
+    mid_cap: ["ROKU", "PLTR", "SNOW", "ZM", "DOCU", "CRWD", "NET", "DDOG", "OKTA", "ZS"]
+    small_cap: ["SFIX", "CLOV", "WISH", "SPCE", "NKLA", "LCID", "RIVN", "HOOD", "COIN", "RBLX"]
+    
+  # Time Periods
+  periods:
+    start_date: "2014-01-01"
+    end_date: "2024-12-31"
+    train_end: "2022-12-31"
+    val_end: "2023-12-31"
+    test_end: "2024-12-31"
+    
+  # Data Sources
+  sources:
+    price_data: "alpha_vantage"
+    earnings_data: "alpha_vantage"
+    news_sentiment: "alpha_vantage"
+    fundamental_data: "alpha_vantage"
+    
+  # Feature Engineering
+  features:
+    technical:
+      - "sma_20"
+      - "sma_50"
+      - "ema_12"
+      - "ema_26"
+      - "rsi_14"
+      - "macd"
+      - "bollinger_bands"
+      - "atr_14"
+      - "volume_sma_20"
+      
+    fundamental:
+      - "pe_ratio"
+      - "pb_ratio"
+      - "debt_to_equity"
+      - "roe"
+      - "roa"
+      - "profit_margin"
+      - "revenue_growth"
+      - "earnings_growth"
+      
+    sentiment:
+      - "earnings_sentiment"
+      - "news_sentiment"
+      - "social_sentiment"
+      - "analyst_sentiment"
+
+# Evaluation Configuration
+evaluation:
+  # Metrics
+  metrics:
+    - "total_return"
+    - "sharpe_ratio"
+    - "sortino_ratio"
+    - "calmar_ratio"
+    - "max_drawdown"
+    - "volatility"
+    - "var_95"
+    - "cvar_95"
+    - "information_ratio"
+    - "tracking_error"
+    
+  # Benchmarks
+  benchmarks:
+    - "equal_weight"
+    - "market_cap_weight"
+    - "momentum"
+    - "mean_reversion"
+    - "buy_and_hold_spy"
+    
+  # Statistical Tests
+  statistical_tests:
+    - "t_test"
+    - "bootstrap_ci"
+    - "diebold_mariano"
+    - "white_reality_check"
+    - "hansen_spa"
+    
+  # Robustness Analysis
+  robustness:
+    - "out_of_sample"
+    - "rolling_window"
+    - "regime_analysis"
+    - "stress_testing"
+    - "monte_carlo"
+
+# Logging and Monitoring
+logging:
+  level: "INFO"
+  log_dir: "./logs"
+  tensorboard_dir: "./runs"
+  save_frequency: 1000
+  
+# Reproducibility
+seed: 42
+deterministic: true
+
+# Hardware Configuration
+device: "auto"  # auto, cpu, cuda, mps
+num_workers: 4
+pin_memory: true
