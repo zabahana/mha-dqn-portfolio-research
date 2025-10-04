@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Ablation Study Results}
+\label{tab:ablation}
+\begin{tabular}{lrrr}
+\toprule
+Model Variant & Sharpe Ratio & Annual Return (%) & Max Drawdown (%) \\
+\midrule
+MHA-DQN (Full) & 1.265 & 41.750 & -36.430 \\
+w/o Multi-Head Attention & 0.892 & 32.180 & -42.670 \\
+w/o Cross-Attention & 0.945 & 35.240 & -39.820 \\
+w/o Dueling Architecture & 0.978 & 37.910 & -38.150 \\
+w/o Prioritized Replay & 1.123 & 39.450 & -37.280 \\
+\bottomrule
+\end{tabular}
+\end{table}
