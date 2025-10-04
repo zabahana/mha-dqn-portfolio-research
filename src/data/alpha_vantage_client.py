@@ -1,6 +1,6 @@
 """
 Alpha Vantage API Client for Financial Data Collection
-Research Project: Multi-Head Attention DQN for Portfolio Optimization
+Multi-Head Attention DQN for Portfolio Optimization
 """
 
 import os

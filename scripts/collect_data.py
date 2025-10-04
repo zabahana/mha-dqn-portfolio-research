@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Data Collection Script for MHA-DQN Portfolio Optimization Research
-Collects 10 years of data for 30 stocks across market caps using Alpha Vantage API
+Data Collection Script for MHA-DQN Portfolio Optimization
+Collects market data for stocks using Alpha Vantage API
 
 Usage:
-    python scripts/collect_data.py --years 10 --stocks all
+    python scripts/collect_data.py --years 5 --stocks all
     python scripts/collect_data.py --years 5 --stocks large_cap
 """
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class DataCollector:
     """
-    Comprehensive data collector for the MHA-DQN research project.
+    Comprehensive data collector for the MHA-DQN portfolio optimization system.
     """
     
     def __init__(self, config: Dict, api_key: str):

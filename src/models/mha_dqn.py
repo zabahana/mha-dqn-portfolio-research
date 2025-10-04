@@ -1,6 +1,5 @@
 """
 Multi-Head Attention Deep Q-Network for Portfolio Optimization
-Research Project: NeurIPS 2024 Submission
 
 This module implements the core MHA-DQN architecture with:
 - Multi-head self-attention for temporal modeling
