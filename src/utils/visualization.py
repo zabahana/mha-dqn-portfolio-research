@@ -132,8 +132,8 @@ class PortfolioVisualizer:
     def plot_feature_distribution(self, features_data: Dict[str, pd.DataFrame], 
                                  save_path: Optional[str] = None) -> plt.Figure:
         """Plot distribution of engineered features"""
-        # Sample a few key features for visualization
-        sample_features = ['rsi', 'macd', 'bb_upper', 'bb_lower', 'volume_sma_ratio']
+        # Use actual available features from the data
+        sample_features = ['open', 'high', 'low', 'close', 'volume', 'adjusted_close']
         
         fig, axes = plt.subplots(2, 3, figsize=(15, 10), dpi=self.dpi)
         axes = axes.flatten()
@@ -143,19 +143,112 @@ class PortfolioVisualizer:
                 feature_values = []
                 for symbol, df in features_data.items():
                     if feature in df.columns:
-                        feature_values.extend(df[feature].dropna().values)
+                        values = df[feature].dropna()
+                        feature_values.extend(values.values)
                 
-                if feature_values:
+                if feature_values and len(feature_values) > 0:
+                    # Create histogram with proper binning
                     axes[i].hist(feature_values, bins=50, alpha=0.7, color=self.colors[i % len(self.colors)])
                     axes[i].set_title(f'{feature.upper()} Distribution', fontsize=12, fontweight='bold')
                     axes[i].set_xlabel(feature)
                     axes[i].set_ylabel('Frequency')
                     axes[i].grid(True, alpha=0.3)
+                    
+                    # Add statistics text
+                    mean_val = np.mean(feature_values)
+                    std_val = np.std(feature_values)
+                    axes[i].text(0.02, 0.98, f'Mean: {mean_val:.3f}\nStd: {std_val:.3f}', 
+                               transform=axes[i].transAxes, verticalalignment='top',
+                               bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                else:
+                    # If no data, show a message
+                    axes[i].text(0.5, 0.5, f'No data for {feature}', 
+                               ha='center', va='center', transform=axes[i].transAxes)
+                    axes[i].set_title(f'{feature.upper()} Distribution', fontsize=12, fontweight='bold')
         
-        # Hide unused subplots
-        for i in range(len(sample_features), 6):
-            axes[i].set_visible(False)
-            
+        plt.tight_layout()
+        if save_path:
+            plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
+        return fig
+    
+    def plot_data_quality_analysis(self, features_data: Dict[str, pd.DataFrame], 
+                                  save_path: Optional[str] = None) -> plt.Figure:
+        """Plot data quality and characteristics analysis"""
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10), dpi=self.dpi)
+        
+        # 1. Data availability by feature
+        feature_names = list(features_data[list(features_data.keys())[0]].columns)
+        non_zero_counts = {}
+        
+        for feature in feature_names:
+            total_count = 0
+            non_zero_count = 0
+            for symbol, df in features_data.items():
+                if feature in df.columns:
+                    total_count += len(df[feature])
+                    non_zero_count += (df[feature] != 0).sum()
+            non_zero_counts[feature] = (non_zero_count, total_count)
+        
+        # Plot data availability
+        features = list(non_zero_counts.keys())
+        availability = [non_zero_counts[f][0]/non_zero_counts[f][1]*100 for f in features]
+        
+        axes[0, 0].bar(range(len(features)), availability, color='skyblue')
+        axes[0, 0].set_title('Data Availability by Feature (%)', fontweight='bold')
+        axes[0, 0].set_xlabel('Feature')
+        axes[0, 0].set_ylabel('Availability (%)')
+        axes[0, 0].set_xticks(range(len(features)))
+        axes[0, 0].set_xticklabels(features, rotation=45, ha='right')
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # 2. Price data distributions (normalized)
+        price_features = ['open', 'high', 'low', 'close']
+        for i, feature in enumerate(price_features):
+            if feature in features_data[list(features_data.keys())[0]].columns:
+                all_values = []
+                for symbol, df in features_data.items():
+                    if feature in df.columns:
+                        all_values.extend(df[feature].values)
+                
+                if all_values:
+                    axes[0, 1].hist(all_values, bins=50, alpha=0.6, 
+                                   label=feature, color=self.colors[i % len(self.colors)])
+        
+        axes[0, 1].set_title('Price Data Distributions (Normalized)', fontweight='bold')
+        axes[0, 1].set_xlabel('Normalized Value')
+        axes[0, 1].set_ylabel('Frequency')
+        axes[0, 1].legend()
+        axes[0, 1].grid(True, alpha=0.3)
+        
+        # 3. Volume distribution
+        volume_values = []
+        for symbol, df in features_data.items():
+            if 'volume' in df.columns:
+                volume_values.extend(df['volume'].values)
+        
+        if volume_values:
+            axes[1, 0].hist(volume_values, bins=50, alpha=0.7, color='orange')
+            axes[1, 0].set_title('Volume Distribution (Normalized)', fontweight='bold')
+            axes[1, 0].set_xlabel('Normalized Volume')
+            axes[1, 0].set_ylabel('Frequency')
+            axes[1, 0].grid(True, alpha=0.3)
+        
+        # 4. Data completeness by stock
+        symbols = list(features_data.keys())
+        completeness = []
+        for symbol in symbols:
+            df = features_data[symbol]
+            total_cells = df.shape[0] * df.shape[1]
+            non_zero_cells = (df != 0).sum().sum()
+            completeness.append(non_zero_cells / total_cells * 100)
+        
+        axes[1, 1].bar(symbols, completeness, color='lightgreen')
+        axes[1, 1].set_title('Data Completeness by Stock (%)', fontweight='bold')
+        axes[1, 1].set_xlabel('Stock Symbol')
+        axes[1, 1].set_ylabel('Completeness (%)')
+        axes[1, 1].tick_params(axis='x', rotation=45)
+        axes[1, 1].grid(True, alpha=0.3)
+        
         plt.tight_layout()
         if save_path:
             plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')

@@ -109,6 +109,14 @@ def generate_eda_visualizations(raw_data, feature_data, output_dir):
     )
     plt.close(fig)
     
+    # 5. Data Quality Analysis
+    logger.info("Creating data quality analysis...")
+    fig = visualizer.plot_data_quality_analysis(
+        feature_data,
+        save_path=output_dir / "figures" / "eda" / "data_quality_analysis.png"
+    )
+    plt.close(fig)
+    
     logger.info("EDA visualizations completed!")
 
 def generate_model_visualizations(output_dir):
