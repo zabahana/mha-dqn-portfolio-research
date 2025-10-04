@@ -1,5 +1,4 @@
 # Multi-Head Attention DQN Configuration for Portfolio Optimization
-# Research Project: NeurIPS 2024 Submission
 
 # Model Architecture
 model:

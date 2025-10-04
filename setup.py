@@ -1,5 +1,5 @@
 """
-Setup script for MHA-DQN Portfolio Optimization Research Project
+Setup script for MHA-DQN Portfolio Optimization
 """
 
 from setuptools import setup, find_packages
@@ -15,7 +15,7 @@ setup(
     version="1.0.0",
     author="Zelalem Abahana",
     author_email="zga5029@psu.edu",
-    description="Multi-Head Attention Deep Q-Networks for Portfolio Optimization: A Sentiment-Integrated Reinforcement Learning Approach",
+    description="Multi-Head Attention Deep Q-Networks for Portfolio Optimization",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zabahana/mha-dqn-portfolio-research",
@@ -23,7 +23,7 @@ setup(
     package_dir={"": "src"},
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
