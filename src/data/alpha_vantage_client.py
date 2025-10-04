@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 import logging
 from alpha_vantage.timeseries import TimeSeries
 from alpha_vantage.fundamentaldata import FundamentalData
-from alpha_vantage.sectorperformance import SectorPerformances
 from alpha_vantage.techindicators import TechIndicators
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,6 @@ class AlphaVantageClient:
         self.ts = TimeSeries(key=self.api_key, output_format='pandas')
         self.fd = FundamentalData(key=self.api_key, output_format='pandas')
         self.ti = TechIndicators(key=self.api_key, output_format='pandas')
-        self.sp = SectorPerformances(key=self.api_key, output_format='pandas')
         
         logger.info(f"Alpha Vantage client initialized (Premium: {premium})")
     
@@ -87,11 +85,29 @@ class AlphaVantageClient:
         self._rate_limit_check()
         
         try:
-            data, meta_data = self.ts.get_daily_adjusted(symbol=symbol, outputsize=outputsize)
+            # Try daily adjusted first, fall back to daily if premium not available
+            try:
+                data, meta_data = self.ts.get_daily_adjusted(symbol=symbol, outputsize=outputsize)
+            except Exception as e:
+                if "premium" in str(e).lower():
+                    logger.warning(f"Premium endpoint not available, using basic daily data for {symbol}")
+                    data, meta_data = self.ts.get_daily(symbol=symbol, outputsize=outputsize)
+                else:
+                    raise e
             
             # Clean column names
             data.columns = [col.split('. ')[1] for col in data.columns]
-            data.columns = ['open', 'high', 'low', 'close', 'adjusted_close', 'volume', 'dividend_amount', 'split_coefficient']
+            
+            # Handle different column sets (adjusted vs basic)
+            if len(data.columns) == 8:
+                # Adjusted data
+                data.columns = ['open', 'high', 'low', 'close', 'adjusted_close', 'volume', 'dividend_amount', 'split_coefficient']
+            elif len(data.columns) == 5:
+                # Basic data
+                data.columns = ['open', 'high', 'low', 'close', 'volume']
+                data['adjusted_close'] = data['close']  # Use close as adjusted close
+            else:
+                logger.warning(f"Unexpected number of columns for {symbol}: {len(data.columns)}")
             
             # Sort by date (oldest first)
             data = data.sort_index()
